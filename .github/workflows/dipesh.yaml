@@ -16,62 +16,62 @@ jobs:
       APP_VERSION: 1.0.0
 
     steps:
-    # Checkout code from repo
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      # Checkout code from repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    # Login to Docker Hub
-    - name: Docker Hub Login
-      env:
-        DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-        DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      run: |
-        echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      # Login to Docker Hub
+      - name: Docker Hub Login
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-    # Build Docker image
-    - name: Build Docker image
-      env:
-        DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-      run: |
-        docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:$APP_VERSION .
+      # Build Docker image
+      - name: Build Docker image
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+        run: |
+          docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:$APP_VERSION .
 
-    # Push Docker image
-    - name: Push Docker image
-      env:
-        DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-      run: |
-        docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:$APP_VERSION
+      # Push Docker image
+      - name: Push Docker image
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+        run: |
+          docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:$APP_VERSION
 
-    # Configure SSH
-    - name: Configure SSH
-      run: |
-        mkdir -p ~/.ssh
-        chmod 700 ~/.ssh
-        echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-        chmod 600 ~/.ssh/config
+      # Configure SSH
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+          chmod 600 ~/.ssh/config
 
-    # Setup SSH key
-    - name: Setup SSH Key
-      run: |
-        echo "${{ secrets.SSH_KEY64 }}" | base64 -d > myKey.pem
-        chmod 400 myKey.pem
-        ssh-keygen -R $SERVER_IP || true
+      # Setup SSH key
+      - name: Setup SSH Key
+        run: |
+          echo "${{ secrets.SSH_KEY64 }}" | base64 -d > myKey.pem
+          chmod 400 myKey.pem
+          ssh-keygen -R $SERVER_IP || true
 
-    # Deploy on EC2 (docker compose up)
-    - name: Deploy on EC2
-      env:
-        IMAGE_NAME: ${{ env.IMAGE_NAME }}
-        APP_VERSION: ${{ env.APP_VERSION }}
-        DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-      run: |
-        ssh -i myKey.pem ec2-user@$SERVER_IP << 'EOF'
-          export APP_VERSION="$APP_VERSION"
-          export IMAGE_NAME="$IMAGE_NAME"
-          export DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME"
+      # Deploy on EC2 (docker compose up)
+      - name: Deploy on EC2
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          APP_VERSION: ${{ env.APP_VERSION }}
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+        run: |
+          ssh -i myKey.pem ec2-user@$SERVER_IP << EOF
+            export APP_VERSION="$APP_VERSION"
+            export IMAGE_NAME="$IMAGE_NAME"
+            export DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME"
 
-          docker pull $DOCKERHUB_USERNAME/$IMAGE_NAME:$APP_VERSION
+            docker pull $DOCKERHUB_USERNAME/$IMAGE_NAME:$APP_VERSION
 
-          cd /opt/app
-          docker compose down
-          docker compose up -d
-        EOF
+            cd /opt/app
+            docker compose down
+            docker compose up -d
+          EOF
