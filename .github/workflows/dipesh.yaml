@@ -1,0 +1,61 @@
+name: Build & Deploy Docker App
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      SERVER_IP: ${{ vars.SERVER_IP }}
+      IMAGE_NAME: node-react-app
+
+    steps:
+    # 1️⃣ Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2️⃣ Login to Docker Hub
+    - name: Docker Hub Login
+      run: |
+        echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
+          -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+    # 3️⃣ Build Docker image
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest .
+
+    # 4️⃣ Push Docker image
+    - name: Push Docker image
+      run: |
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
+
+    # 5️⃣ Configure SSH
+    - name: Configure SSH
+      run: |
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+        chmod 600 ~/.ssh/config
+
+    # 6️⃣ Setup SSH key
+    - name: Setup SSH Key
+      run: |
+        echo "${{ secrets.SSH_KEY64 }}" | base64 -d > myKey.pem
+        chmod 400 myKey.pem
+        ssh-keygen -R $SERVER_IP
+
+    # 7️⃣ Deploy on EC2 (docker compose up)
+    - name: Deploy on EC2
+      run: |
+        ssh -i myKey.pem ec2-user@$SERVER_IP << 'EOF'
+          docker pull yourdockerhubuser/node-react-app:latest
+          cd /opt/app   # where docker-compose.yml exists
+          docker compose down
+          docker compose up -d
+        EOF

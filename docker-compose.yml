@@ -1,0 +1,14 @@
+services:
+  nginx:
+    image: goddipeshshrestha/node_in_nginx:v4
+    container_name: "node_in_nginx_4"
+    ports:
+      - 8050:80
+    volumes:
+      - node_volume:/usr/share/nginx/html/
+    networks:
+      - dipesh-net
+networks:
+  dipesh-net:
+volumes:
+  node_volume:
