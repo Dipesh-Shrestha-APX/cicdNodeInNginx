@@ -4,11 +4,9 @@ services:
     container_name: "n${IMAGE_NAME}_${APP_VERSION}"
     ports:
       - 80:80
-    volumes:
-      - node_volume:/usr/share/nginx/html/
     networks:
       - dipesh-net
 networks:
   dipesh-net:
-volumes:
-  node_volume:
+
+#HAAHAHAHAHAHA Volume was the cause of no changes being seen i guess let me test it once again
