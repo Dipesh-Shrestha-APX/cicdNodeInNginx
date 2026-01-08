@@ -21,6 +21,8 @@ RUN npm run build
 FROM nginx:stable-alpine
 # WORKDIR /nginxApp
 # RUN cp /usr/share/nginx/html/index.html /usr/share/nginx/html/index_bkp.html 
+RUN ls -R /tempApp/dist/
+RUN cat /usr/share/nginx/html/index.html
 COPY --from=temp_node /tempApp/dist/ /usr/share/nginx/html/
 
 
