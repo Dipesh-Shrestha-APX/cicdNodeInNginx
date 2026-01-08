@@ -16,7 +16,7 @@ jobs:
       APP_VERSION: 1.0.0
 
     steps:
-    # Checkout code
+    # Checkout code from repo
     - name: Checkout repository
       uses: actions/checkout@v4
 
