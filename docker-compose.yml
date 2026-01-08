@@ -1,9 +1,9 @@
 services:
   nginx:
-    image: goddipeshshrestha/node_in_nginx:v4
-    container_name: "node_in_nginx_4"
+    image: ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${APP_VERSION}
+    container_name: "n${IMAGE_NAME}_${APP_VERSION}"
     ports:
-      - 8050:80
+      - 80:80
     volumes:
       - node_volume:/usr/share/nginx/html/
     networks:

@@ -12,7 +12,8 @@ jobs:
 
     env:
       SERVER_IP: ${{ vars.SERVER_IP }}
-      IMAGE_NAME: node-react-app
+      IMAGE_NAME: node-in-nginx
+      App_Version: 1.0.0
 
     steps:
     # 1️⃣ Checkout code
@@ -28,12 +29,12 @@ jobs:
     # 3️⃣ Build Docker image
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest .
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$APP_VERSION .
 
     # 4️⃣ Push Docker image
     - name: Push Docker image
       run: |
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$APP_VERSION
 
     # 5️⃣ Configure SSH
     - name: Configure SSH
@@ -53,9 +54,15 @@ jobs:
     # 7️⃣ Deploy on EC2 (docker compose up)
     - name: Deploy on EC2
       run: |
-        ssh -i myKey.pem ec2-user@$SERVER_IP << 'EOF'
-          docker pull yourdockerhubuser/node-react-app:latest
-          cd /opt/app   # where docker-compose.yml exists
+        ssh -i myKey.pem ec2-user@$SERVER_IP << EOF
+          export APP_VERSION="${{ env.APP_VERSION }}"
+          export IMAGE_NAME="${{ env.IMAGE_NAME }}"
+          export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+
+          docker pull \$DOCKERHUB_USERNAME/\$IMAGE_NAME:\$APP_VERSION
+
+          cd /opt/app
           docker compose down
           docker compose up -d
         EOF
+
