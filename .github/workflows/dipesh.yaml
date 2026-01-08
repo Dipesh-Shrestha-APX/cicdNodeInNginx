@@ -20,11 +20,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2️⃣ Login to Docker Hub
+    # # 2️⃣ Login to Docker Hub
     - name: Docker Hub Login
       run: |
-        echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
-          -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+    # - name: Docker Hub Login
+    #   run: |
+    #     echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
+    #       -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
     # 3️⃣ Build Docker image
     - name: Build Docker image
