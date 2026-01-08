@@ -1,5 +1,11 @@
 #First section
 FROM node:20-alpine AS temp_node
+
+# Accept build-time variable i.e. receive it from the github->runner->here
+ARG APP_VERSION
+# Make it visible to Node (process.env) i.e. receive this arg to environment so that node app could access through process.env.APP_VERSION
+ENV APP_VERSION=$APP_VERSION
+
 WORKDIR /tempApp
 #To use the caching on dependencies installation
 #Copy and run is single layer
