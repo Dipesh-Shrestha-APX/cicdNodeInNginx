@@ -13,6 +13,8 @@ COPY package.json ./
 RUN npm install
 #Remaining on different batch
 COPY . .
+RUN ls -R src
+RUN cat src/template.html
 RUN npm run build
 
 #Second section
