@@ -12,8 +12,8 @@ jobs:
 
     env:
       SERVER_IP: ${{ vars.SERVER_IP }}
-      IMAGE_NAME: node-in-nginx
-      APP_VERSION: 1.0.0
+      IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+      APP_VERSION: ${{ vars.APP_VERSION }}
 
     steps:
       # Checkout code from repo
